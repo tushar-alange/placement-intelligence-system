@@ -20,25 +20,14 @@ function App() {
         setPlacements(parsed || []);
         setLoading(false);
       })
-      .catch((err) => {
-        console.log(err);
-        setLoading(false);
-      });
+      .catch(() => setLoading(false));
   }, []);
 
-  if (loading) {
-    return (
-      <div style={{ padding: "20px", fontFamily: "Arial" }}>
-        <h2>Loading placements...</h2>
-      </div>
-    );
-  }
+  const sorted = [...placements].sort(
+    (a, b) => new Date(b.deadline) - new Date(a.deadline)
+  );
 
-  const sortedPlacements = [...placements].sort((a, b) => {
-    return new Date(a.deadline) - new Date(b.deadline);
-  });
-
-  const filteredPlacements = sortedPlacements
+  const filtered = sorted
     .filter((p) =>
       p.company?.toLowerCase().includes(search.toLowerCase())
     )
@@ -47,26 +36,28 @@ function App() {
     );
 
   return (
-    <div style={{ padding: "20px", fontFamily: "Arial" }}>
-      <h1>Placement Intelligence Dashboard</h1>
+    <div style={styles.page}>
+      {/* HEADER */}
+      <div style={styles.header}>
+        <h1 style={styles.title}>Placement Intelligence System</h1>
+        <p style={styles.subtitle}>
+          Live placements from email automation pipeline
+        </p>
+      </div>
 
-      {/* SEARCH + FILTER */}
-      <div style={{ marginBottom: "20px" }}>
+      {/* CONTROLS */}
+      <div style={styles.controls}>
         <input
           placeholder="Search company..."
           value={search}
           onChange={(e) => setSearch(e.target.value)}
-          style={{
-            padding: "8px",
-            marginRight: "10px",
-            width: "220px",
-          }}
+          style={styles.input}
         />
 
         <select
           value={branchFilter}
           onChange={(e) => setBranchFilter(e.target.value)}
-          style={{ padding: "8px" }}
+          style={styles.select}
         >
           <option value="All">All Branches</option>
           <option value="Computer">Computer</option>
@@ -75,50 +66,39 @@ function App() {
         </select>
       </div>
 
-      {/* EMPTY STATE */}
-      {filteredPlacements.length === 0 ? (
-        <div>
-          <h2>No placements available</h2>
-          <p>Check back later or refresh the page.</p>
-        </div>
+      {/* CONTENT */}
+      {loading ? (
+        <p style={styles.info}>Loading placements...</p>
+      ) : filtered.length === 0 ? (
+        <p style={styles.info}>No placements found</p>
       ) : (
-        <div
-          style={{
-            display: "grid",
-            gridTemplateColumns:
-              "repeat(auto-fit, minmax(280px, 1fr))",
-            gap: "16px",
-          }}
-        >
-          {filteredPlacements.map((p) => (
-            <div
-              key={p.placement_id}
-              style={{
-                border: "1px solid #ddd",
-                padding: "15px",
-                borderRadius: "10px",
-                boxShadow: "0 2px 6px rgba(0,0,0,0.1)",
-                background: "#fff",
-              }}
-            >
-              <h2 style={{ marginBottom: "8px" }}>
-                {p.company}
-              </h2>
+        <div style={styles.grid}>
+          {filtered.map((p) => (
+            <div key={p.placement_id} style={styles.card}>
+              <div style={styles.cardTop}>
+                <h2 style={styles.company}>{p.company}</h2>
+
+                <span style={styles.badge}>
+                  ₹ {p.stipend || "N/A"}
+                </span>
+              </div>
 
               <p><b>Role:</b> {p.role}</p>
               <p><b>Branch:</b> {p.branch}</p>
               <p><b>Batch:</b> {p.batch}</p>
-              <p><b>Stipend:</b> {p.stipend}</p>
-              <p><b>Deadline:</b> {p.deadline}</p>
+
+              <div style={styles.deadline}>
+                Deadline: {p.deadline}
+              </div>
 
               {p.registration_link && (
                 <a
                   href={p.registration_link}
                   target="_blank"
                   rel="noreferrer"
-                  style={{ color: "blue" }}
+                  style={styles.link}
                 >
-                  Apply Here →
+                  Apply Now →
                 </a>
               )}
             </div>
@@ -128,5 +108,90 @@ function App() {
     </div>
   );
 }
+
+const styles = {
+  page: {
+    fontFamily: "Arial",
+    background: "#f6f7fb",
+    minHeight: "100vh",
+    padding: "30px",
+  },
+  header: {
+    textAlign: "center",
+    marginBottom: "25px",
+  },
+  title: {
+    margin: 0,
+    fontSize: "28px",
+  },
+  subtitle: {
+    margin: "5px 0 0",
+    color: "#666",
+  },
+  controls: {
+    display: "flex",
+    justifyContent: "center",
+    gap: "10px",
+    marginBottom: "20px",
+  },
+  input: {
+    padding: "10px",
+    width: "220px",
+    borderRadius: "8px",
+    border: "1px solid #ccc",
+  },
+  select: {
+    padding: "10px",
+    borderRadius: "8px",
+    border: "1px solid #ccc",
+  },
+  grid: {
+    display: "grid",
+    gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))",
+    gap: "15px",
+    maxWidth: "1100px",
+    margin: "auto",
+  },
+  card: {
+    background: "white",
+    padding: "15px",
+    borderRadius: "12px",
+    boxShadow: "0 4px 10px rgba(0,0,0,0.08)",
+  },
+  cardTop: {
+    display: "flex",
+    justifyContent: "space-between",
+    alignItems: "center",
+  },
+  company: {
+    fontSize: "18px",
+    margin: 0,
+  },
+  badge: {
+    background: "#e8f5e9",
+    color: "#2e7d32",
+    padding: "5px 10px",
+    borderRadius: "20px",
+    fontSize: "12px",
+  },
+  deadline: {
+    marginTop: "10px",
+    fontSize: "13px",
+    color: "#d32f2f",
+    fontWeight: "bold",
+  },
+  link: {
+    display: "inline-block",
+    marginTop: "10px",
+    color: "#1976d2",
+    fontWeight: "bold",
+    textDecoration: "none",
+  },
+  info: {
+    textAlign: "center",
+    color: "#666",
+    marginTop: "40px",
+  },
+};
 
 export default App;

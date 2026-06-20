@@ -23,6 +23,25 @@ them in DynamoDB, and serves them through a React dashboard.
    branch filtering, newest-first sorting, and the ability to add, edit, or delete entries
    directly from the UI (bypassing email entirely when needed).
 
+
+## System Flow
+
+```text
+Gmail
+  ↓
+placement-auto Label
+  ↓
+Google Apps Script (Scheduled Trigger)
+  ↓
+AWS Lambda
+  ├─ Regex Extraction
+  ├─ Gemini Fallback (if needed)
+  └─ Deduplication
+  ↓
+DynamoDB
+  ↓
+React Dashboard
+```
 ## Project structure
 
 ```text
